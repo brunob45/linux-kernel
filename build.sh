@@ -10,7 +10,7 @@ make radxa_zero_defconfig
 make -j8
 
 # package kernel
-export build_id="0"
+export build_id="$(date '+%Y%m%d%H%M')"
 export lv="-${build_id}-amlogic"
 export kv=$(make kernelversion)
 export debv="${kv}${lv}"
