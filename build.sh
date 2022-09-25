@@ -1,9 +1,7 @@
 #!/bin/sh
 
-GNU_VERSION=11.3.rel1
-
 export ARCH=arm64
-export CROSS_COMPILE=/opt/gcc-arm-${GNU_VERSION}/bin/aarch64-none-elf-
+export CROSS_COMPILE=${ARM_GCC_PATH}/bin/aarch64-none-elf-
 
 # build kernel
 make radxa_zero_defconfig

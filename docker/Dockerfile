@@ -17,3 +17,5 @@ RUN \
 ENV PATH="${PATH}:${OUTPUT_PATH}/bin:${OUTPUT_PATH}/aarch64-none-elf/bin"
 
 RUN apt-get update && apt-get -y install bc rsync kmod cpio bison flex libssl-dev
+
+ENV ARM_GCC_PATH=$OUTPUT_PATH
