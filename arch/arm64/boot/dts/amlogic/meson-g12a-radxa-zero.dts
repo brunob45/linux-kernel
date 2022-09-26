@@ -15,10 +15,18 @@
 
 	aliases {
 		serial0 = &uart_AO;
-	};
-
-	chosen {
-		stdout-path = "serial0:115200n8";
+		serial1 = &uart_AO_B;
+		serial2 = &uart_A;
+		serial3 = &uart_B;
+		serial4 = &uart_C;
+		i2c0 = &i2c0;
+		i2c1 = &i2c1;
+		i2c2 = &i2c2;
+		i2c3 = &i2c3;
+		i2c4 = &i2c_AO;
+		spi0 = &spicc0;
+		spi1 = &spicc1;
+		spi2 = &spifc;
 	};
 
 	memory@0 {
@@ -60,9 +68,26 @@
 		clock-names = "ext_clock";
 	};
 
-	ao_5v: regulator-ao_5v {
+	typec2_vbus: regulator-typec2_vbus {
 		compatible = "regulator-fixed";
-		regulator-name = "AO_5V";
+		regulator-name = "TYPEC2_VBUS";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		vin-supply = <&dc_in>;
+	};
+
+	flash_1v8: regulator-flash_1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "FLASH_1V8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		vin-supply = <&vcc_3v3>;
+		regulator-always-on;
+	};
+
+	dc_in: regulator-dc_in {
+		compatible = "regulator-fixed";
+		regulator-name = "DC_IN";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		regulator-always-on;
@@ -86,13 +111,15 @@
 		regulator-always-on;
 	};
 
-	hdmi_pw: regulator-hdmi_pw {
+	vcc_5v: regulator-vcc_5v {
 		compatible = "regulator-fixed";
-		regulator-name = "HDMI_PW";
+		regulator-name = "VCC_5V";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		vin-supply = <&ao_5v>;
-		regulator-always-on;
+		vin-supply = <&dc_in>;
+
+		gpio = <&gpio GPIOH_8 GPIO_OPEN_DRAIN>;
+		enable-active-low;
 	};
 
 	vddao_1v8: regulator-vddao_1v8 {
@@ -109,7 +136,7 @@
 		regulator-name = "VDDAO_3V3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		vin-supply = <&ao_5v>;
+		vin-supply = <&dc_in>;
 		regulator-always-on;
 	};
 
@@ -120,7 +147,7 @@
 		regulator-min-microvolt = <721000>;
 		regulator-max-microvolt = <1022000>;
 
-		vin-supply = <&ao_5v>;
+		vin-supply = <&dc_in>;
 
 		pwms = <&pwm_AO_cd 1 1250 0>;
 		pwm-dutycycle-range = <100 0>;
@@ -188,6 +215,29 @@
 		#clock-cells = <0>;
 		clock-frequency = <32768>;
 		pwms = <&pwm_ef 0 30518 0>; /* PWM_E at 32.768KHz */
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led-green {
+			label = "radxa-zero:green";
+			gpios = <&gpio_ao GPIOAO_8 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+			default-state = "on";
+		};
+	};
+};
+
+&ao_pinctrl {
+	/* Ensure the TYPE C controller irq pin is not driven by the SoC */
+	fusb302_irq_pins: fusb302_irq {
+		mux {
+			groups = "GPIOAO_5";
+			function = "gpio_aobus";
+			bias-pull-up;
+			output-disable;
+		};
 	};
 };
 
@@ -263,7 +313,7 @@
 	status = "okay";
 	pinctrl-0 = <&hdmitx_hpd_pins>, <&hdmitx_ddc_pins>;
 	pinctrl-names = "default";
-	hdmi-supply = <&hdmi_pw>;
+	hdmi-supply = <&vcc_5v>;
 };
 
 &hdmi_tx_tmds_port {
@@ -276,6 +326,26 @@
 	status = "disabled";
 	pinctrl-0 = <&remote_input_ao_pins>;
 	pinctrl-names = "default";
+};
+
+&i2c3 {
+	pinctrl-0 = <&i2c3_sda_a_pins>, <&i2c3_sck_a_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	fusb302@22 {
+		compatible = "fcs,fusb302";
+		reg = <0x22>;
+
+		pinctrl-0 = <&fusb302_irq_pins>;
+		pinctrl-names = "default";
+		interrupt-parent = <&gpio_intc>;
+		interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+
+		vbus-supply = <&typec2_vbus>;
+
+		status = "okay";
+	};
 };
 
 &pwm_AO_cd {
@@ -311,7 +381,7 @@
 	bus-width = <4>;
 	cap-sd-highspeed;
 	sd-uhs-sdr50;
-	max-frequency = <100000000>;
+	max-frequency = <80000000>;
 
 	non-removable;
 	disable-wp;
@@ -327,6 +397,8 @@
 	brcmf: wifi@1 {
 		reg = <1>;
 		compatible = "brcm,bcm4329-fmac";
+		interrupts = <&gpio GPIOX_7 GPIO_ACTIVE_HIGH>;
+		interrupt-names = "host-wake";
 	};
 };
 
@@ -363,7 +435,7 @@
 
 	mmc-pwrseq = <&emmc_pwrseq>;
 	vmmc-supply = <&vcc_3v3>;
-	vqmmc-supply = <&vcc_1v8>;
+	vqmmc-supply = <&flash_1v8>;
 };
 
 &tdmif_b {
@@ -393,13 +465,14 @@
 	};
 };
 
-&uart_AO {
-	status = "okay";
-	pinctrl-0 = <&uart_ao_a_pins>;
-	pinctrl-names = "default";
-};
-
 &usb {
 	status = "okay";
-	dr_mode = "host";
+};
+
+&usb2_phy0 {
+	phy-supply = <&typec2_vbus>;
+};
+
+&usb3_pcie_phy {
+	phy-supply = <&typec2_vbus>;
 };
