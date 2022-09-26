@@ -1,10 +1,11 @@
 #!/bin/bash
 
-DOCKER_IMAGE=debian-gcc
+DOCKER_BASE=${2:-"ubuntu"} # by default, use ubuntu
+DOCKER_IMAGE=${DOCKER_BASE}-gcc
 
 case $1 in
 build_image)
-	docker build -t ${DOCKER_IMAGE} .
+	docker build -t ${DOCKER_IMAGE} --build-arg BASE_IMAGE="${DOCKER_BASE}:latest" .
 ;;
 run_image)
 	docker run -it --rm ${DOCKER_IMAGE}
