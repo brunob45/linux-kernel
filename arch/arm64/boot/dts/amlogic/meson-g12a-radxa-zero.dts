@@ -15,7 +15,14 @@
 
 	aliases {
 		serial0 = &uart_AO;
+		i2c0 = &i2c0;
+		i2c1 = &i2c1;
+		i2c2 = &i2c2;
 		i2c3 = &i2c3;
+		i2c4 = &i2c_AO;
+		spi0 = &spicc0;
+		spi1 = &spicc1;
+		spi2 = &spifc;
 	};
 
 	chosen {
@@ -66,7 +73,7 @@
 		regulator-name = "TYPEC2_VBUS";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		vin-supply = <&dc_in>;
+		vin-supply = <&ao_5v>;
 	};
 
 	ao_5v: regulator-ao_5v {
@@ -207,6 +214,18 @@
 			gpios = <&gpio_ao GPIOAO_8 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "heartbeat";
 			default-state = "on";
+		};
+	};
+};
+
+&ao_pinctrl {
+	/* Ensure the TYPE C controller irq pin is not driven by the SoC */
+	fusb302_irq_pins: fusb302_irq {
+		mux {
+			groups = "GPIOAO_5";
+			function = "gpio_aobus";
+			bias-pull-up;
+			output-disable;
 		};
 	};
 };

@@ -18,4 +18,4 @@ RUN \
 
 ENV PATH="${PATH}:${ARM_GCC_PATH}/bin:${ARM_GCC_PATH}/aarch64-none-elf/bin"
 
-RUN apt-get update && apt-get -y install libncurses-dev flex bison
+RUN apt-get update && apt-get -y install libncurses-dev flex bison bc rsync kmod cpio libssl-dev
