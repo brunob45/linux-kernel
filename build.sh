@@ -3,6 +3,8 @@
 export ARCH=arm64
 export CROSS_COMPILE=${ARM_GCC_PATH}/bin/aarch64-none-elf-
 
+export KBUILD_OUTPUT=/tmp/linux
+
 # build kernel
 make radxa_zero_defconfig
 make -j8

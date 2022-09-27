@@ -8,7 +8,7 @@ build_image)
 	docker build -t ${DOCKER_IMAGE} --build-arg BASE_IMAGE="${DOCKER_BASE}:latest" .
 ;;
 run_image)
-	docker run -it --rm ${DOCKER_IMAGE}
+	docker run -it --rm -v $(pwd)/..:/root ${DOCKER_IMAGE}
 ;;
 build_kernel)
 	docker run --rm -v $(pwd)/..:/root ${DOCKER_IMAGE} /bin/bash -c "cd linux-kernel && ./build.sh"
