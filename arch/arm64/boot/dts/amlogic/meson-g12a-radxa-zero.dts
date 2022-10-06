@@ -212,7 +212,7 @@
 		led-green {
 			label = "radxa-zero:green";
 			gpios = <&gpio_ao GPIOAO_10 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "heartbeat";
+			linux,default-trigger = "mmc0";
 			default-state = "on";
 		};
 	};
